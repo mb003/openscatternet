@@ -18,3 +18,7 @@ Open Libraries:
   * Bluetooth
   * OpenObex
   * BTOPUSH
+
+= Future Enhancement =
+
+Scatternet Packet routing & message passing
