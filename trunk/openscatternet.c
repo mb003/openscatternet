@@ -30,6 +30,9 @@
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
+#include "bluetooth/hci.h"
+#include "../bluez-libs-3.28/src/hci.c"
+#include "../bluez-libs-3.28/src/bluetooth.c"
 
 #define FREE_NODE 0
 #define ROOT_NODE 1
@@ -38,26 +41,31 @@
 
 void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 {
-   char addr[18];
+   char addr[18],self_addr[18];
    FILE *fp;
    char fname[70]; 
-   int i;  
-   
+   int i,dev_id;  
+   bdaddr_t ba;
    if ((*devc = btopush_inq_objpush(devs)) <= 0) {
 	fprintf(stderr, "could not find objpush capable devices\n");
 	exit(1);
    }
    
-   strcpy(fname,"Init");
    for(i=0; i< *devc; i++ )
    {         
       /* initialize bluetooth */
       btopush_init(btctx);
 
+      //ba2str(&(devs->addr), addr);
+      dev_id = hci_get_route(NULL);
+      hci_devba(0, &ba);
+      ba2str(&ba, self_addr);
       ba2str(&(devs->addr), addr);
-      strcat(fname,addr);
+      
+      strcpy(fname,"Init"); 
+      strcat(fname,self_addr);
       fp = fopen(fname,"w");
-      fprintf(fp,"Hello World !");
+      fprintf(fp,"%s",self_addr);
       fclose(fp);
 		    
 	if (btopush_attach_dev(btctx, devs) != BTOPUSH_SUCCESS) {
@@ -110,8 +118,6 @@ int main()
    char * rmaddr = NULL;
    char addr[18];
    int devc, i=0;
-   ba2str(BDADDR_LOCAL,addr);
-   printf("\n%s",addr);
 
       /* initialize bluetooth */
    btopush_init(&btctx);
