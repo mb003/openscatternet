@@ -66,10 +66,5 @@ int main (void)
          puts(buffer);
          fclose(fp);
        }
-
-dev_id = hci_get_route(NULL);
-hci_devba(0, &ba);
-ba2str(&ba, addr);
-printf("%s\n",addr);
        return 0;
 }
