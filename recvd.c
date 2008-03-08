@@ -35,18 +35,6 @@
 #define MAX_FILES 20
 
 
-int hci_devba(int dev_id, bdaddr_t *ba)
-{
-         struct hci_dev_info di;
- 
-         if (hci_devinfo(dev_id, &di))
-                 return -1;
-
-         bacpy(ba, &di.bdaddr);
-         return 0;
-}
- 
-
 int main (void)
 {
        DIR *dp;
