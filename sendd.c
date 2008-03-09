@@ -31,8 +31,8 @@
 #include <pthread.h>
 #include <string.h>
 #include "bluetooth/hci.h"
-#include "../bluez-libs-3.28/src/hci.c"
-#include "../bluez-libs-3.28/src/bluetooth.c"
+#include "../../bluez-libs-3.28/src/hci.c"
+#include "../../bluez-libs-3.28/src/bluetooth.c"
 
 #define FREE_NODE 0
 #define ROOT_NODE 1
@@ -41,18 +41,25 @@
 
 void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 {
-   char addr[18],self_addr[18];
-   FILE *fp;
+   char addr[18],self_addr[18],tree_addr[18];
+   FILE *fp,*conf,*sent;
    char fname[70]; 
-   int i,dev_id;  
+   int i,dev_id,node_status=FREE_NODE;  
    bdaddr_t ba;
    if ((*devc = btopush_inq_objpush(devs)) <= 0) {
 	fprintf(stderr, "could not find objpush capable devices\n");
 	exit(1);
    }
-   
+
+      if( (conf = fopen("node_status.conf","w")) > 0 ) 
+      {
+        fscanf(conf,"%s %s %d\n",self_addr,tree_addr,&node_status);
+        fclose(conf);
+      }
+
    for(i=0; i< *devc; i++ )
-   {         
+   {  
+      
       /* initialize bluetooth */
       btopush_init(btctx);
 
@@ -61,11 +68,19 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
       hci_devba(0, &ba);
       ba2str(&ba, self_addr);
       ba2str(&(devs->addr), addr);
+      ba2str(BDADDR_ANY, tree_addr);
+
       
+
       strcpy(fname,"Init"); 
       strcat(fname,self_addr);
+
+      conf = fopen("node_status.conf","w");          
+      fprintf(conf,"%s %s %d\n",self_addr,tree_addr,node_status);
+      fclose(conf);
+
       fp = fopen(fname,"w");
-      fprintf(fp,"%s",self_addr);
+      fprintf(fp,"%s %s %d\n",self_addr,tree_addr,node_status);
       fclose(fp);
 		    
 	if (btopush_attach_dev(btctx, devs) != BTOPUSH_SUCCESS) {
@@ -103,12 +118,17 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 	 } 
          else {
 	    fprintf(stdout, "%s stream succesfull\n", addr); 
-            /* to add code for merging procedure */ 
 	 }
+         
+         sent = fopen("sent.list","a");
+         fprintf(sent,"%s\n",addr);
 	 btopush_close_file(btctx);
 disc:
 	 btopush_disconnect(btctx);
    }
+   conf = fopen("node_status.conf","w");          
+   fprintf(conf,"%s %s %d\n",self_addr,tree_addr,node_status);
+   fclose(conf);
 }
 
 int main()
