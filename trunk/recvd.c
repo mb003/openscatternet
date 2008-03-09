@@ -29,8 +29,8 @@
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
 #include "bluetooth/hci.h"
-#include "../bluez-libs-3.28/src/hci.c"
-#include "../bluez-libs-3.28/src/bluetooth.c"
+#include "../../bluez-libs-3.28/src/hci.c"
+#include "../../bluez-libs-3.28/src/bluetooth.c"
 #include "bluetooth/hci_lib.h"
 #define MAX_FILES 20
 
@@ -39,15 +39,16 @@ int main (void)
 {
        DIR *dp;
        struct dirent *ep;
-       char filename[MAX_FILES][20],buffer[50],addr[18];
-       FILE *fp;
-       int i=0,j,dev_id;
+       char filename[MAX_FILES][25],buffer[50],buffer1[50],addr[18];
+       FILE *fp,*sent,*recv;
+       int i=0,j,flag,dev_id;
        bdaddr_t ba;
        dp = opendir ("./");
        if (dp != NULL)
         {
            while (ep = readdir (dp))
-           if( strcmp(ep->d_name,".") != 0  && strcmp(ep->d_name,"..") != 0 )
+           if( strcmp(ep->d_name,".") != 0  && strcmp(ep->d_name,"..") != 0 
+              && strcmp(ep->d_name,"recvd") != 0)
            {
              strcpy(filename[i],ep->d_name);
              i++;
@@ -58,13 +59,29 @@ int main (void)
          perror ("Couldn't open the directory");
        
        j=i-1;
+       sent = fopen("../sent.list","r");
        for( i=0; i<j; i++)
        {
          fp = fopen(filename[i],"r");
-         fscanf(fp,"%s",buffer);
-         puts(filename[i]);
-         puts(buffer);
+         fgets(buffer,18,fp);
+         //buffer[17]=NULL;
+         while(fscanf(sent,"%s",addr) != NULL)
+         { 
+           printf("\n%s %s\n",addr,buffer);
+           if((flag = strcmp(addr,buffer)) == 0 )
+           {
+             fgets(buffer,18,fp);
+             fscanf(sent,"%s",buffer1);
+             if(strcmp(buffer,buffer1) == 0) 
+             {
+               printf("\nCOOL !\n");
+               break;
+             }
+           }   
+         }
+         
          fclose(fp);
        }
+       fclose(sent);
        return 0;
 }
