@@ -33,10 +33,8 @@
 #include "bluetooth/hci.h"
 #include "../../bluez-libs-3.28/src/hci.c"
 #include "../../bluez-libs-3.28/src/bluetooth.c"
+#include "header.h"
 
-#define FREE_NODE 0
-#define ROOT_NODE 1
-#define NON_ROOT_NODE 2
 
 
 void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
@@ -46,9 +44,15 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
    char fname[70]; 
    int i,dev_id,node_status=FREE_NODE;  
    bdaddr_t ba;
+
    if ((*devc = btopush_inq_objpush(devs)) <= 0) {
 	fprintf(stderr, "could not find objpush capable devices\n");
-	exit(1);
+        hci_devba(0, &ba);
+        ba2str(&ba, self_addr);
+        conf = fopen("node_status.conf","w");
+        fprintf(conf,"%s %s %d\n",self_addr,self_addr,ROOT_NODE);
+        fclose(conf);
+	return;
    }
 
       if( (conf = fopen("node_status.conf","w")) > 0 ) 
@@ -139,13 +143,13 @@ int main()
    char addr[18];
    int devc, i=0;
 
-      /* initialize bluetooth */
+/* initialize bluetooth */
    btopush_init(&btctx);
 
-   //for( ; ; )
-   //{
+   for( ; ; )
+   {
       treeformation(&btctx,&devs[0],&devc);
-      //sleep(300);
-   //}
+      sleep(30);
+   }
    return 0;
 }

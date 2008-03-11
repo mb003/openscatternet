@@ -32,16 +32,16 @@
 #include "../../bluez-libs-3.28/src/hci.c"
 #include "../../bluez-libs-3.28/src/bluetooth.c"
 #include "bluetooth/hci_lib.h"
-#define MAX_FILES 20
+#include "header.h"
 
 
 int main (void)
 {
        DIR *dp;
        struct dirent *ep;
-       char filename[MAX_FILES][25],buffer[50],buffer1[50],addr[18];
-       FILE *fp,*sent,*recv;
-       int i=0,j,flag,dev_id;
+       char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18],tree_addr[18],recv_tree_addr[18];
+       FILE *fp,*sent,*recv,*node,*list;
+       int i=0,j,flag,dev_id,self_node_status,recv_node_status;
        bdaddr_t ba;
        dp = opendir ("./");
        if (dp != NULL)
@@ -59,29 +59,59 @@ int main (void)
          perror ("Couldn't open the directory");
        
        j=i-1;
-       sent = fopen("../sent.list","r");
-       for( i=0; i<j; i++)
+
+       for( i=0; i<=j; i++)
        {
+         sent = fopen("../sent.list","r");
+
+/* Read the Node Address from the received filename[i] */
          fp = fopen(filename[i],"r");
-         fgets(buffer,18,fp);
-         //buffer[17]=NULL;
-         while(fscanf(sent,"%s",addr) != NULL)
+         fgets(recv_addr,18,fp);
+         fseek(fp,1,1);
+         fgets(recv_tree_addr,18,fp);
+         fscanf(fp,"%d",&recv_node_status);
+         fclose(fp);
+
+/* Searching the sent file for Node Address read from the received filename[i] */   
+         while((fscanf(sent,"%s",sent_addr)) != EOF)
          { 
-           printf("\n%s %s\n",addr,buffer);
-           if((flag = strcmp(addr,buffer)) == 0 )
-           {
-             fgets(buffer,18,fp);
-             fscanf(sent,"%s",buffer1);
-             if(strcmp(buffer,buffer1) == 0) 
+           
+           if((flag = strcmp(sent_addr,recv_addr)) == 0 )
+           {             
+
+/* Reading the contents from node_status.conf */ 
+             node = fopen("../node_status.conf","r");
+             fgets(self_addr,18,fp);
+             fseek(fp,1,1);
+             fgets(tree_addr,18,node);
+             fscanf(node,"%d",&self_node_status);
+             fclose(node);    
+             
+
+/* Tearing down the link if both nodes belong to same tree */
+             if( strcmp(tree_addr,recv_tree_addr) == 0 ) break;
+
+/* Checking for case A2   */
+             else if( recv_node_status == FREE_NODE || 
+                   (recv_node_status == FREE_NODE && self_node_status == NON_ROOT_NODE))
              {
                printf("\nCOOL !\n");
                break;
              }
-           }   
+             else if( strcmp(recv_tree_addr,recv_addr) == 0 && recv_node_status == ROOT_NODE)
+             {
+                strcpy(recv_tree_addr,self_tree_addr);
+                childlist = fopen("../child.list","r");
+                fscanf(
+             }
+
+           } 
          }
-         
-         fclose(fp);
+/* Deleting Files after use */
+         unlink(filename[i]);   
+         fclose(sent);
        }
-       fclose(sent);
+
+
        return 0;
 }
