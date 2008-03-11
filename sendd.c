@@ -42,7 +42,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
    char addr[18],self_addr[18],tree_addr[18];
    FILE *fp,*conf,*sent;
    char fname[70]; 
-   int i,dev_id,node_status=FREE_NODE;  
+   int i,dev_id,node_status=FREE_NODE,N=0;  
    bdaddr_t ba;
 
    if ((*devc = btopush_inq_objpush(devs)) <= 0) {
@@ -50,14 +50,14 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
         hci_devba(0, &ba);
         ba2str(&ba, self_addr);
         conf = fopen("node_status.conf","w");
-        fprintf(conf,"%s %s %d\n",self_addr,self_addr,ROOT_NODE);
+        fprintf(conf,"%s %s %d %d\n",self_addr,self_addr,FREE_NODE,N);
         fclose(conf);
 	return;
    }
 
-      if( (conf = fopen("node_status.conf","w")) > 0 ) 
+      if( (conf = fopen("node_status.conf","r")) > 0 ) 
       {
-        fscanf(conf,"%s %s %d\n",self_addr,tree_addr,&node_status);
+        fscanf(conf,"%s %s %d %d\n",self_addr,tree_addr,&node_status,&N);
         fclose(conf);
       }
 
@@ -80,11 +80,11 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
       strcat(fname,self_addr);
 
       conf = fopen("node_status.conf","w");          
-      fprintf(conf,"%s %s %d\n",self_addr,tree_addr,node_status);
+      fprintf(conf,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
       fclose(conf);
 
       fp = fopen(fname,"w");
-      fprintf(fp,"%s %s %d\n",self_addr,tree_addr,node_status);
+      fprintf(fp,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
       fclose(fp);
 		    
 	if (btopush_attach_dev(btctx, devs) != BTOPUSH_SUCCESS) {
@@ -131,7 +131,7 @@ disc:
 	 btopush_disconnect(btctx);
    }
    conf = fopen("node_status.conf","w");          
-   fprintf(conf,"%s %s %d\n",self_addr,tree_addr,node_status);
+   fprintf(conf,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
    fclose(conf);
 }
 
