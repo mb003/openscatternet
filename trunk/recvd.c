@@ -22,6 +22,7 @@
 
 
 #include <stdio.h>
+#include <time.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
@@ -41,7 +42,7 @@ int main (void)
        struct dirent *ep;
        char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18],tree_addr[18],recv_tree_addr[18];
        FILE *fp,*sent,*recv,*node,*list;
-       int i=0,j,flag,dev_id,self_node_status,recv_node_status;
+       int i=0,j,flag,dev_id,self_node_status,recv_node_status,N;
        bdaddr_t ba;
        dp = opendir ("./");
        if (dp != NULL)
@@ -69,7 +70,7 @@ int main (void)
          fgets(recv_addr,18,fp);
          fseek(fp,1,1);
          fgets(recv_tree_addr,18,fp);
-         fscanf(fp,"%d",&recv_node_status);
+         fscanf(fp,"%d %d",&recv_node_status,&N);
          fclose(fp);
 
 /* Searching the sent file for Node Address read from the received filename[i] */   
@@ -84,31 +85,53 @@ int main (void)
              fgets(self_addr,18,fp);
              fseek(fp,1,1);
              fgets(tree_addr,18,node);
-             fscanf(node,"%d",&self_node_status);
+             fscanf(node,"%d %d",&self_node_status,&N);
              fclose(node);    
              
 
 /* Tearing down the link if both nodes belong to same tree */
-             if( strcmp(tree_addr,recv_tree_addr) == 0 ) break;
+             if( strcmp(tree_addr,recv_tree_addr) == 0 && 
+                (strcmp(tree_addr,"00:00:00:00:00:00"))!=0 ) break;
 
 /* Checking for case A2   */
-             else if( recv_node_status == FREE_NODE || 
-                   (recv_node_status == FREE_NODE && self_node_status == NON_ROOT_NODE))
-             {
-               printf("\nCOOL !\n");
+             else if( recv_node_status == FREE_NODE )
+             { 
+               if(self_node_status == FREE_NODE)
+               { 
+                  srand((unsigned int)time( NULL ));
+                  if(rand()%2)
+                  {
+                    self_node_status = ROOT_NODE;
+                    strcpy(tree_addr,self_addr);
+                    N=1;
+                    node = fopen("../node_status.conf","w");
+                    fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
+                    fclose(node);                    
+                  }
+                  else
+                  {
+                    self_node_status = NON_ROOT_NODE;
+                    strcpy(tree_addr,recv_addr);
+                    N=1;
+                    node = fopen("../node_status.conf","w");
+                    fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
+                    fclose(node);
+                  }
+               }
+               else if(self_node_status == NON_ROOT_NODE)
+               {
+               }
+               else
+               {
+               }
                break;
              }
-             else if( strcmp(recv_tree_addr,recv_addr) == 0 && recv_node_status == ROOT_NODE)
-             {
-                strcpy(recv_tree_addr,self_tree_addr);
-                childlist = fopen("../child.list","r");
-                fscanf(
-             }
+             else {}
 
            } 
          }
 /* Deleting Files after use */
-         unlink(filename[i]);   
+         //unlink(filename[i]);   
          fclose(sent);
        }
 
