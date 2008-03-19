@@ -29,13 +29,14 @@
 #include <dirent.h>
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
-#include "bluetooth/hci.h"
+#include <btopush/btopush.h>
+#include <bluetooth/hci.h>
 #include "include/bluez-libs-3.28/src/hci.c"
 #include "include/bluez-libs-3.28/src/bluetooth.c"
 #include "include/btopush-1.0/btopush/sdp.c"
 #include "bluetooth/hci_lib.h"
 #include "header.h"
-#include <btopush/btopush.h>
+
 
 
 int main (void)
@@ -78,14 +79,15 @@ int main (void)
     fclose(fp);
 
 /* Reading the contents from node_status.conf */ 
-    node = fopen("../node_status.conf","r");
+    node = fopen(NODE_STATUS_FILE1,"r");
     fgets(self_addr,18,fp);
     fseek(fp,1,1);
     fgets(tree_addr,18,node);
     fscanf(node,"%d %d",&self_node_status,&N);
     fclose(node);    
              
-/* Searching the sent file for Node Address read from the received filename[i] */   
+/* Searching the sent file for verifying Node Address, 
+read from the received filename[i]                  */   
     while((fscanf(sent,"%s",sent_addr)) != EOF)
     { 
        
@@ -93,19 +95,21 @@ int main (void)
       {             
 
 /* Reading the contents from node_status.conf */ 
-        node = fopen("../node_status.conf","r");
+        node = fopen(NODE_STATUS_FILE1,"r");
         fgets(self_addr,18,fp);
         fseek(fp,1,1);
         fgets(tree_addr,18,node);
         fscanf(node,"%d %d",&self_node_status,&N);
         fclose(node);    
-             
+            
 
 /* Tearing down the link if both nodes belong to same tree */
         if( strcmp(tree_addr,recv_tree_addr) == 0 && 
         (strcmp(tree_addr,"00:00:00:00:00:00"))!=0 ) break;
+ 
 
-/* Checking for case A2   */
+                                                         /* Update Message as Response for Init,
+                                                            Checking for case A2  */
         else if( recv_node_status == FREE_NODE )
         { 
           if(self_node_status == FREE_NODE)
@@ -116,8 +120,11 @@ int main (void)
               self_node_status = ROOT_NODE;
               strcpy(tree_addr,self_addr);
               N++;
-              node = fopen("../node_status.conf","w");
+              node = fopen(NODE_STATUS_FILE1,"w");
               fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
+              fclose(node);
+              node = fopen(TOPOLOGY_FILE,"w");
+              fprintf(node,"%s\n",recv_addr);
               fclose(node);                    
             }
             else
@@ -125,7 +132,7 @@ int main (void)
               self_node_status = NON_ROOT_NODE;
               strcpy(tree_addr,recv_addr);
               N++;
-              node = fopen("../node_status.conf","w");
+              node = fopen(NODE_STATUS_FILE1,"w");
               fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
               fclose(node);
             }
@@ -149,7 +156,8 @@ int main (void)
             {
               ba2str(&(devs[a].addr),temp_addr);
               if( strcmp(recv_addr,temp_addr) == 0 )break;
-            }
+            }                                                   
+                                                                   
             strcpy(fname,"Update"); 
             strcat(fname,self_addr);
 	    send = fopen(fname,"w");          
@@ -195,48 +203,37 @@ int main (void)
 	        fprintf(stderr, "%s cancelled\n", recv_addr);
 	        btopush_close_file(&btctx);
 	        goto disc;
-	       }
-	     } 
-             else 
-             {
-	       fprintf(stdout, "%s stream succesfull\n", recv_addr); 
-	     }
-             disc: 
-	       btopush_disconnect(&btctx);fclose(send);   
-	     }
-             if(recv_node_status == NON_ROOT_NODE )
-             {
-               node = fopen("node_status.conf","w");     
-               fprintf(node,"%s %s %d %d\n",self_addr,recv_tree_addr,self_node_status,N);
-               fclose(node);
-
-               node = fopen("topology.list","w");
-               fprintf(node,"%s\n",recv_addr);
-               fclose(node);
-               break;
-          }
-        }/* End of case A2   */ 
+	      }
+	    } 
+            else 
+            {
+	      fprintf(stdout, "%s stream succesfull\n", recv_addr); 
+	    }
+            disc: 
+	      btopush_disconnect(&btctx);fclose(send);   
+	  }                                             /*    End of case A2    */ 
+        }   
+                                                 
+        if(recv_node_status == NON_ROOT_NODE || recv_node_status == ROOT_NODE )        
+        {                                              
+                                                       /*Response to Update Message*/
+            self_node_status = NON_ROOT_NODE;
+            if( recv_node_status == NON_ROOT_NODE ) 
+            {
+              self_node_status = ROOT_NODE;
+              node = fopen(TOPOLOGY_FILE,"w");
+              fprintf(node,"%s\n",recv_addr);
+              fclose(node);
+            }
+            node = fopen("node_status.conf","w");     
+            fprintf(node,"%s %s %d %d\n",self_addr,recv_tree_addr,self_node_status,N);
+            fclose(node);
+            break;
+        }
       } 
-/*
-if(recv_node_status == NON_ROOT_NODE && (strcmp(recv_tree_addr,self_addr)) == 0)
-{
- node = fopen("node_status.conf","w");          
- fprintf(node,"%s %s %d %d\n",self_addr,recv_tree_addr,self_node_status,N);
- fclose(node);
-
- node = fopen("topology.list","w");
- fprintf(node,"%s\n",recv_addr);
- fclose(node);
-
-}*/
-
-    }/* While Ends */
-/* End of Checking for sent nodes */
-
-/* Deleting Files after use */
-         //unlink(filename[i]);   
-        fclose(sent);
-
-  } /* For Ends */
-      return 0;
+    }                                            /* while loop Ends              */
+    //unlink(filename[i]);                       /* Deleting Files after use     */
+    fclose(sent);
+  }                                              /* for loop Ends                */
+  return 0;
 }

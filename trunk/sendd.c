@@ -49,13 +49,13 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 	fprintf(stderr, "could not find objpush capable devices\n");
         hci_devba(0, &ba);
         ba2str(&ba, self_addr);
-        conf = fopen("node_status.conf","w");
+        conf = fopen(NODE_STATUS_FILE,"w");
         fprintf(conf,"%s %s %d %d\n",self_addr,self_addr,FREE_NODE,N);
         fclose(conf);
 	return;
    }
 
-      if( (conf = fopen("node_status.conf","r")) > 0 ) 
+      if( (conf = fopen(NODE_STATUS_FILE,"r")) > 0 ) 
       {
         fscanf(conf,"%s %s %d %d\n",self_addr,tree_addr,&node_status,&N);
         fclose(conf);
@@ -79,7 +79,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
       strcpy(fname,"Init"); 
       strcat(fname,self_addr);
 
-      conf = fopen("node_status.conf","w");          
+      conf = fopen(NODE_STATUS_FILE,"w");          
       fprintf(conf,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
       fclose(conf);
 
@@ -130,7 +130,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 disc:
 	 btopush_disconnect(btctx);
    }
-   conf = fopen("node_status.conf","w");          
+   conf = fopen(NODE_STATUS_FILE,"w");          
    fprintf(conf,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
    fclose(conf);
 }
