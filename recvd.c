@@ -88,7 +88,7 @@ int main (void)
 /* Searching the sent file for Node Address read from the received filename[i] */   
     while((fscanf(sent,"%s",sent_addr)) != EOF)
     { 
-           
+       
       if((flag = strcmp(sent_addr,recv_addr)) == 0 )
       {             
 
@@ -215,9 +215,7 @@ int main (void)
                fclose(node);
                break;
           }
-          else if(0)
-          {}
-        } 
+        }/* End of case A2   */ 
       } 
 /*
 if(recv_node_status == NON_ROOT_NODE && (strcmp(recv_tree_addr,self_addr)) == 0)
@@ -233,7 +231,7 @@ if(recv_node_status == NON_ROOT_NODE && (strcmp(recv_tree_addr,self_addr)) == 0)
 }*/
 
     }/* While Ends */
-
+/* End of Checking for sent nodes */
 
 /* Deleting Files after use */
          //unlink(filename[i]);   
