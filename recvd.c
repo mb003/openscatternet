@@ -30,20 +30,23 @@
 #include <sys/socket.h>
 #include <bluetooth/bluetooth.h>
 #include "bluetooth/hci.h"
-#include "../../bluez-libs-3.28/src/hci.c"
-#include "../../bluez-libs-3.28/src/bluetooth.c"
+#include "include/bluez-libs-3.28/src/hci.c"
+#include "include/bluez-libs-3.28/src/bluetooth.c"
+#include "include/btopush-1.0/btopush/sdp.c"
 #include "bluetooth/hci_lib.h"
 #include "header.h"
+#include <btopush/btopush.h>
 
 
 int main (void)
 {
        DIR *dp;
+       btopush_dev_t devs[BTOPUSH_MAX_DEV];btopush_ctx_t btctx;
        struct dirent *ep;
-       char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18],tree_addr[18],recv_tree_addr[18];
-       FILE *fp,*sent,*recv,*node,*list;
-       int i=0,j,flag,dev_id,self_node_status,recv_node_status,N;
-       bdaddr_t ba;
+       char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18],tree_addr[18],recv_tree_addr[18],temp_addr[18],fname[30];
+       FILE *fp,*sent,*recv,*node,*list,*send;
+       int i=0,j,a,flag,dev_id,self_node_status,recv_node_status,N,ch,devc;
+       bdaddr_t ba,ba1;
        dp = opendir ("./");
        if (dp != NULL)
         {
@@ -103,7 +106,7 @@ int main (void)
                   {
                     self_node_status = ROOT_NODE;
                     strcpy(tree_addr,self_addr);
-                    N=1;
+                    N++;
                     node = fopen("../node_status.conf","w");
                     fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
                     fclose(node);                    
@@ -112,11 +115,77 @@ int main (void)
                   {
                     self_node_status = NON_ROOT_NODE;
                     strcpy(tree_addr,recv_addr);
-                    N=1;
+                    N++;
                     node = fopen("../node_status.conf","w");
                     fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
                     fclose(node);
                   }
+           /*         
+             str2ba(recv_addr,&ba);
+             str2ba(self_addr,&ba1);
+	     ch = btopush_get_channel(&ba1, &ba);
+	     if (ch != BTOPUSH_ERROR) {
+	     memcpy(&devs.addr, (bdaddr_t *) recv_addr, sizeof(bdaddr_t));
+	     devs.channel = ch;
+             printf("\n%d\n",ch);
+             }
+           */
+              if ((devc = btopush_inq_objpush(devs)) <= 0) {
+	fprintf(stderr, "could not find objpush capable devices\n");
+        return;
+         }
+             for(a=0;a<BTOPUSH_MAX_DEV;a++)
+             {
+               ba2str(&(devs[a].addr),temp_addr);
+               if( strcmp(recv_addr,temp_addr) == 0 )break;
+             }
+             strcpy(fname,"Update"); 
+             strcat(fname,self_addr);
+	     send = fopen(fname,"w");          
+             fprintf(send,"%s %s %d %d\n",self_addr,tree_addr,self_node_status,N);
+             fclose(send);
+
+            btopush_init(&btctx);
+
+	     if (btopush_attach_dev(&btctx,(devs+a)) != BTOPUSH_SUCCESS) {
+	    fprintf(stderr, "%s could not set device\n", recv_addr);
+	    return;
+	}    
+	
+	if (btopush_open(&btctx) != BTOPUSH_SUCCESS) {
+	    fprintf(stderr, "%s could not open connection\n", recv_addr);
+	    return;
+	}	
+
+	if (btopush_connect(&btctx, "prijsobject") != BTOPUSH_SUCCESS) {
+	    fprintf(stderr, "%s could not connect\n", recv_addr);
+	    return;
+	}
+	send = fopen(fname,"r");
+        fprintf(stdout, "%s start sending %s\n", recv_addr, fname);
+	if (btopush_open_file(&btctx, fname) != BTOPUSH_SUCCESS) {
+	   fprintf(stderr, "could not open file: %s\n", fname);
+	   goto disc;
+        }
+	    
+	if (btopush_push_stream(&btctx) != BTOPUSH_SUCCESS) {
+	   if (btctx.req_state == BTOPUSH_REQS_TIMEOUT) {
+	      fprintf(stderr, "%s connection timed out\n", recv_addr);
+	      btopush_close_file(&btctx);
+	      goto disc;
+	   } 
+           else {
+	      fprintf(stderr, "%s cancelled\n", recv_addr);
+	      btopush_close_file(&btctx);
+	      goto disc;
+	   }
+	 } 
+         else {
+	    fprintf(stdout, "%s stream succesfull\n", recv_addr); 
+	 }
+      disc: 
+	 btopush_disconnect(&btctx);fclose(send);   
+	 
                }
                else if(self_node_status == NON_ROOT_NODE)
                {
@@ -130,6 +199,7 @@ int main (void)
 
            } 
          }
+
 /* Deleting Files after use */
          //unlink(filename[i]);   
          fclose(sent);
