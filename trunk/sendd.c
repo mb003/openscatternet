@@ -31,8 +31,8 @@
 #include <pthread.h>
 #include <string.h>
 #include "bluetooth/hci.h"
-#include "../../bluez-libs-3.28/src/hci.c"
-#include "../../bluez-libs-3.28/src/bluetooth.c"
+#include "include/bluez-libs-3.28/src/hci.c"
+#include "include/bluez-libs-3.28/src/bluetooth.c"
 #include "header.h"
 
 
@@ -71,7 +71,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
       dev_id = hci_get_route(NULL);
       hci_devba(0, &ba);
       ba2str(&ba, self_addr);
-      ba2str(&(devs->addr), addr);
+      ba2str(&((devs+i)->addr), addr);
       ba2str(BDADDR_ANY, tree_addr);
 
       
@@ -87,14 +87,14 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
       fprintf(fp,"%s %s %d %d\n",self_addr,tree_addr,node_status,N);
       fclose(fp);
 		    
-	if (btopush_attach_dev(btctx, devs) != BTOPUSH_SUCCESS) {
+	if (btopush_attach_dev(btctx, devs+i) != BTOPUSH_SUCCESS) {
 	    fprintf(stderr, "%s could not set device\n", addr);
 	    return;
 	}    
 	
 	if (btopush_open(btctx) != BTOPUSH_SUCCESS) {
 	    fprintf(stderr, "%s could not open connection\n", addr);
-	    return;
+            return;
 	}	
 
 	if (btopush_connect(btctx, "prijsobject") != BTOPUSH_SUCCESS) {
@@ -146,10 +146,10 @@ int main()
 /* initialize bluetooth */
    btopush_init(&btctx);
 
-   for( ; ; )
-   {
+  // for( ; ; )
+  // {
       treeformation(&btctx,&devs[0],&devc);
-      sleep(30);
-   }
+     // sleep(30);
+  // }
    return 0;
 }
