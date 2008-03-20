@@ -13,14 +13,14 @@ Open Software
   * Bluespam   [http://openscatternet.googlecode.com/files/bluespam-1.2.tar.gz Download]
 
 Open Libraries:
-  * BlueZ Bluetoot Library bluez-libs-3.28
+  * BlueZ Bluetooth Library bluez-libs-3.28
   * OpenObex  
   * BTOPUSH   [http://openscatternet.googlecode.com/files/btopush-1.0.tar.gz Download]
 
 Platform
   * Linux Kernel 2.6.18-4-686 
   * Operating System - Debian Etch
-  * 
+  * C Language
 
 = Future Enhancement =
 
