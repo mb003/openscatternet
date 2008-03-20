@@ -16,7 +16,7 @@ Add your content here.
 Open Source projects consumed
 
 Open Software
-*Bluespam http://www.mulliner.org/palm/bluespam.php
+*[http://www.mulliner.org/palm/bluespam.php Bluespam ]
 
 Open Libraries:
   * Bluetooth
