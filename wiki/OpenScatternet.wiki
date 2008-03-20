@@ -13,7 +13,7 @@ Open for interested people to contribute & always welcome :)
 Open Source projects consumed
 
 Open Software
-*[http://www.mulliner.org/palm/bluespam.php Bluespam ] [http://openscatternet.googlecode.com/files/bluespam-1.2.tar.gz Download]
+*Bluespam [http://www.mulliner.org/palm/bluespam.php Bluespam ] [http://openscatternet.googlecode.com/files/bluespam-1.2.tar.gz Download]
 
 Open Libraries:
   * Bluetooth 
