@@ -2,11 +2,8 @@
 [http://openscatternet.googlecode.com/files/logo-small.jpg]
 ----
 
-= Introduction =
-
-The Project is in Development Phase !
-Open for interested people to contribute & always welcome :)
-
+= What is Scatternet ? =
+[http://en.wikipedia.org/wiki/Scatternet]
 
 = Details =
 
