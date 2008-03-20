@@ -1,3 +1,4 @@
+[http://openscatternet.googlecode.com/files/logo-small.jpg]
 #summary Scatternet Formation project.
 
 = Introduction =
