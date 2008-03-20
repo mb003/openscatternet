@@ -36,9 +36,6 @@
 #include "include/btopush-1.0/btopush/sdp.c"
 #include "bluetooth/hci_lib.h"
 #include "header.h"
-/* ToDO */
-/* NDesc value should be implemented in the files */
-/* In each condition, include the type of file */
 
 
 int main (void)
@@ -48,9 +45,10 @@ int main (void)
   struct dirent *ep;
   char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18];
   char tree_addr[18],recv_tree_addr[18],temp_addr[18],fname[30];
+  char filetype[5];
   FILE *fp,*recv,*node,*list,*send;
   int i=0,j,a,dev_id,self_node_status,recv_node_status,N,ch,devc;
-  int NDesc;
+  int NDesc,recv_N,recv_NDesc;
   bdaddr_t ba,ba1;
   dp = opendir ("./");
   if (dp != NULL)
@@ -77,38 +75,27 @@ int main (void)
     fgets(recv_addr,18,fp);
     fseek(fp,1,1);
     fgets(recv_tree_addr,18,fp);
-    fscanf(fp,"%d %d",&recv_node_status,&N);
+    fscanf(fp,"%d %d",&recv_node_status,&recv_N);
     fclose(fp);
+
+    strncpy(filetype,filename[i],4);
+    printf("\n%s\n",filetype);
     
 /* Reading the contents from node_status.conf */ 
     node = fopen(NODE_STATUS_FILE1,"r");
     fgets(self_addr,18,fp);
     fseek(fp,1,1);
     fgets(tree_addr,18,node);
-    fscanf(node,"%d %d",&self_node_status,&N);
+    fscanf(node,"%d %d %d",&self_node_status,&N,&NDesc);
     fclose(node);    
              
-/* Searching the sent file for verifying Node Address, 
-read from the received filename[i]                  */   
-           
-                
-/* Reading the contents from node_status.conf */ 
-    node = fopen(NODE_STATUS_FILE1,"r");
-    fgets(self_addr,18,fp);
-    fseek(fp,1,1);
-    fgets(tree_addr,18,node);
-    fscanf(node,"%d %d",&self_node_status,&N);
-    fclose(node);    
-            
-
 /* Tearing down the link if both nodes belong to same tree */
     if( strcmp(tree_addr,recv_tree_addr) == 0 && 
     (strcmp(tree_addr,"00:00:00:00:00:00"))!=0 ) break;
  
-                                                         /* Update Message as Response for Init,
-                                                            Checking for case A2  */
-    else if( recv_node_status == FREE_NODE )
-    { 
+/* Update Message as Response for Init, Checking for case A2  */
+    else if( recv_node_status == FREE_NODE && strcmp(filetype,"Init")== 0)
+    { printf("\ninside init\n");
       if(self_node_status == FREE_NODE )
       { 
         srand((unsigned int)time( NULL ));
@@ -118,7 +105,7 @@ read from the received filename[i]                  */
           strcpy(tree_addr,self_addr);
           N++;
           node = fopen(NODE_STATUS_FILE1,"w");
-          fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
+          fprintf(node,"%s %s %d %d %d\n",self_addr,tree_addr,self_node_status,N,NDesc);
           fclose(node);
           node = fopen(TOPOLOGY_FILE,"w");
           fprintf(node,"%s\n",recv_addr);
@@ -130,7 +117,7 @@ read from the received filename[i]                  */
           strcpy(tree_addr,recv_addr);
           N++;
           node = fopen(NODE_STATUS_FILE1,"w");
-          fprintf(node,"%s %s %d %d",self_addr,tree_addr,self_node_status,N);
+          fprintf(node,"%s %s %d %d %d\n",self_addr,tree_addr,self_node_status,N,NDesc);
           fclose(node);
         }
         /*         
@@ -155,11 +142,11 @@ read from the received filename[i]                  */
         }                                                   
         if(a==BTOPUSH_MAX_DEV)  /* If the recv_addr not found then its init ignored */
         {
-          unlink(filename[i]);
-          break;
+          //unlink(filename[i]);
+          continue;
         }                                                          
  update:
-        strcpy(fname,UPrm); 
+        strcpy(fname,UpdateParameters); 
         strcat(fname,self_addr);
         send = fopen(fname,"w");          
         fprintf(send,"%s %s %d %d\n",self_addr,tree_addr,self_node_status,N);
@@ -168,18 +155,19 @@ read from the received filename[i]                  */
         if (btopush_attach_dev(&btctx,(devs+a)) != BTOPUSH_SUCCESS)
         {
           fprintf(stderr, "%s could not set device\n", recv_addr);
-	  return;
+	  goto disc;
 	}    
 	if (btopush_open(&btctx) != BTOPUSH_SUCCESS)
         {
 	  fprintf(stderr, "%s could not open connection\n", recv_addr);
-	  return;
+	  goto disc;
         }	
         if (btopush_connect(&btctx, "prijsobject") != BTOPUSH_SUCCESS) 
         {
 	  fprintf(stderr, "%s could not connect\n", recv_addr);
-	  return;
+	  goto disc;
 	}
+
 	send = fopen(fname,"r");
         fprintf(stdout, "%s start sending %s\n", recv_addr, fname);
 	if (btopush_open_file(&btctx, fname) != BTOPUSH_SUCCESS) 
@@ -207,32 +195,36 @@ read from the received filename[i]                  */
          {
 	   fprintf(stdout, "%s stream succesfull\n", recv_addr); 
 	 }
+         btopush_disconnect(&btctx);
          disc: 
-	   btopush_disconnect(&btctx);fclose(send);   
-      }                                             /*    End of case A2    */ 
-    }
+           //unlink(filename[i]);
+           fclose(send);
+           continue;   
+      }                /*    End of case A2    */ 
+    }/*
     else if( recv_node_status == ROOT_NODE )
     {
        
-    }  
-                     /*Response to Update Message*/
-    if(recv_node_status == NON_ROOT_NODE || recv_node_status == ROOT_NODE )        
+    } */ 
+       /*Response to Update Message*/
+    else if(strcmp(filetype,"UPrm")== 0)        
     {                                              
                                                       
       self_node_status = NON_ROOT_NODE;
-      if( recv_node_status == NON_ROOT_NODE ) 
+      if( strcmp(recv_tree_addr,self_addr)  == 0 )
       {
         self_node_status = ROOT_NODE;
+        if(NDesc == -1 ) NDesc =1;
+        else NDesc++;
         node = fopen(TOPOLOGY_FILE,"w");
         fprintf(node,"%s\n",recv_addr);
         fclose(node);
       }
-      node = fopen("node_status.conf","w");     
-      fprintf(node,"%s %s %d %d\n",self_addr,recv_tree_addr,self_node_status,N);
+      node = fopen("../node_status.conf","w");     
+      fprintf(node,"%s %s %d %d %d\n",self_addr,recv_tree_addr,self_node_status,N,NDesc);
       fclose(node);
       break;
-    }
-    //unlink(filename[i]);                       /* Deleting Files after use     */
-  }                                            /* for loop Ends                */
+    }                    
+  }          /* for loop Ends                */
   return 0;
 }
