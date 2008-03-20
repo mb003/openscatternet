@@ -40,7 +40,7 @@
 void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 {
    char addr[18],self_addr[18],tree_addr[18];
-   FILE *fp,*conf,*sent;
+   FILE *fp,*conf;
    char fname[70]; 
    int i,dev_id,node_status=FREE_NODE,N=0;  
    bdaddr_t ba;
@@ -124,9 +124,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 	    fprintf(stdout, "%s stream succesfull\n", addr); 
 	 }
          
-         sent = fopen("sent.list","a");
-         fprintf(sent,"%s\n",addr);
-	 btopush_close_file(btctx);
+         btopush_close_file(btctx);
 disc:
 	 btopush_disconnect(btctx);
    }
