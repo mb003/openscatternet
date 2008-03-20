@@ -13,9 +13,11 @@ Add your content here.
 
 = Details =
 
-Free Software used to modify
+Open Source projects consumed
 
-Bluespam http://www.mulliner.org/palm/bluespam.php
+Open Software
+*Bluespam http://www.mulliner.org/palm/bluespam.php
+
 Open Libraries:
   * Bluetooth
   * OpenObex
