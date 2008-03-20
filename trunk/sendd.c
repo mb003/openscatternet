@@ -76,7 +76,7 @@ void treeformation( btopush_ctx_t *btctx,btopush_dev_t *devs, int *devc )
 
       
 
-      strcpy(fname,"Init"); 
+      strcpy(fname,Init); 
       strcat(fname,self_addr);
 
       conf = fopen(NODE_STATUS_FILE,"w");          
