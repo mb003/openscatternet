@@ -36,7 +36,9 @@
 #include "include/btopush-1.0/btopush/sdp.c"
 #include "bluetooth/hci_lib.h"
 #include "header.h"
-
+/* ToDO */
+/* NDesc value should be implemented in the files */
+/* In each condition, include the type of file */
 
 
 int main (void)
@@ -47,7 +49,8 @@ int main (void)
   char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18];
   char tree_addr[18],recv_tree_addr[18],temp_addr[18],fname[30];
   FILE *fp,*recv,*node,*list,*send;
-  int i=0,j,a,flag,dev_id,self_node_status,recv_node_status,N,ch,devc;
+  int i=0,j,a,dev_id,self_node_status,recv_node_status,N,ch,devc;
+  int NDesc;
   bdaddr_t ba,ba1;
   dp = opendir ("./");
   if (dp != NULL)
@@ -76,7 +79,7 @@ int main (void)
     fgets(recv_tree_addr,18,fp);
     fscanf(fp,"%d %d",&recv_node_status,&N);
     fclose(fp);
-
+    
 /* Reading the contents from node_status.conf */ 
     node = fopen(NODE_STATUS_FILE1,"r");
     fgets(self_addr,18,fp);
@@ -145,17 +148,18 @@ read from the received filename[i]                  */
 	  fprintf(stderr, "could not find objpush capable devices\n");
           return;
         }
-        for(a=0;a<BTOPUSH_MAX_DEV;a++)
+        for(a=0;a<BTOPUSH_MAX_DEV;a++) /* Searching for recv_addr */
         {
           ba2str(&(devs[a].addr),temp_addr);
           if( strcmp(recv_addr,temp_addr) == 0 )break;
         }                                                   
-        if(a==BTOPUSH_MAX_DEV) 
+        if(a==BTOPUSH_MAX_DEV)  /* If the recv_addr not found then its init ignored */
         {
           unlink(filename[i]);
           break;
         }                                                          
-        strcpy(fname,"Update"); 
+ update:
+        strcpy(fname,UPrm); 
         strcat(fname,self_addr);
         send = fopen(fname,"w");          
         fprintf(send,"%s %s %d %d\n",self_addr,tree_addr,self_node_status,N);
@@ -206,8 +210,12 @@ read from the received filename[i]                  */
          disc: 
 	   btopush_disconnect(&btctx);fclose(send);   
       }                                             /*    End of case A2    */ 
-    }   
-                      /*Response to Update Message*/
+    }
+    else if( recv_node_status == ROOT_NODE )
+    {
+       
+    }  
+                     /*Response to Update Message*/
     if(recv_node_status == NON_ROOT_NODE || recv_node_status == ROOT_NODE )        
     {                                              
                                                       
