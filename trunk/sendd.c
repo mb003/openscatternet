@@ -155,7 +155,7 @@ int main()
        fscanf(sent_count,"%d",&sent);
        fclose(sent_count);
        sleep(30);
-     }while(sent=0)   
+     }while(sent=0);
    }
    return 0;
 }
