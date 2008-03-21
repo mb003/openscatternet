@@ -5,10 +5,12 @@
 #define TOPOLOGY_FILE "topology.txt"
 #define NODE_STATUS_FILE "node_status.conf"
 #define NODE_STATUS_FILE1 "../node_status.conf"
+#define SENT_COUNT_FILE "../sent"
 #define Init "Init"
 #define UpdateParameters "UPrm"
 #define UpdateNDesc "UNDe"
 #define StartReconf "SRec"
+
 
 
 
