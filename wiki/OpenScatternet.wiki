@@ -17,7 +17,7 @@ Open Source projects consumed
   * Open Libraries:
      * BlueZ Bluetooth Library bluez-libs-3.28 [http://openscatternet.googlecode.com/files/bluez-libs-3.28.tar.gz Download] [http://www.bluez.org/download.html Details]
      * OpenObex  [http://openscatternet.googlecode.com/files/openobex-1.3.tar.gz  Download]  [http://dev.zuckschwerdt.org/openobex/ Details]
-     * BTOPUSH   [http://openscatternet.googlecode.com/files/btopush-1.0.tar.gz Download]
+     * BTOPUSH   [http://openscatternet.googlecode.com/files/btopush-1.0.tar.gz Download]  [http://www.josos.org/index/040-softwares/bluetooth/ Details]
 
 Platform
   * Linux Kernel 2.6.18-4-686 
