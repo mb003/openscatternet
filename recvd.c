@@ -46,9 +46,9 @@ int main (void)
   char filename[MAX_FILES][25],recv_addr[18],self_addr[18],sent_addr[18];
   char tree_addr[18],recv_tree_addr[18],temp_addr[18],fname[30];
   char filetype[5];
-  FILE *fp,*recv,*node,*list,*send;
+  FILE *fp,*recv,*node,*list,*send,*sent_count;
   int i=0,j,a,dev_id,self_node_status,recv_node_status,N,ch,devc;
-  int NDesc,recv_N,recv_NDesc;
+  int NDesc,recv_N,recv_NDesc,sent=0;
   bdaddr_t ba,ba1;
   dp = opendir ("./");
   if (dp != NULL)
@@ -149,8 +149,9 @@ int main (void)
         strcpy(fname,UpdateParameters); 
         strcat(fname,self_addr);
         send = fopen(fname,"w");          
-        fprintf(send,"%s %s %d %d\n",self_addr,tree_addr,self_node_status,N);
+        fprintf(send,"%s %s %d %d %d\n",self_addr,tree_addr,self_node_status,N,NDesc);
         fclose(send);
+        sent++;
         btopush_init(&btctx);
         if (btopush_attach_dev(&btctx,(devs+a)) != BTOPUSH_SUCCESS)
         {
@@ -226,5 +227,8 @@ int main (void)
       break;
     }                    
   }          /* for loop Ends                */
+  sent_count = fopen(SENT_COUNT_FILE,"w");
+  fprintf(sent_count,"%d",sent);
+  fclose(sent_count);
   return 0;
 }

@@ -139,15 +139,23 @@ int main()
    btopush_dev_t devs[BTOPUSH_MAX_DEV];
    char * rmaddr = NULL;
    char addr[18];
-   int devc, i=0;
+   int devc, i=0,sent;
+   FILE *sent_count;
 
 /* initialize bluetooth */
    btopush_init(&btctx);
 
-  // for( ; ; )
-  // {
-      treeformation(&btctx,&devs[0],&devc);
-     // sleep(30);
-  // }
+   for( ; ; )
+   {
+     treeformation(&btctx,&devs[0],&devc);
+     do 
+     {
+       system("../recv/recvd");
+       sent_count = fopen(SENT_COUNT_FILE,"r");
+       fscanf(sent_count,"%d",&sent);
+       fclose(sent_count);
+       sleep(30);
+     }while(sent=0)   
+   }
    return 0;
 }
