@@ -15,7 +15,7 @@ Open Source projects consumed
 
 
   * Open Libraries:
-     * BlueZ Bluetooth Library bluez-libs-3.28
+     * BlueZ Bluetooth Library bluez-libs-3.28 [http://openscatternet.googlecode.com/files/bluez-libs-3.28.tar.gz Download]
      * OpenObex  
      * BTOPUSH   [http://openscatternet.googlecode.com/files/btopush-1.0.tar.gz Download]
 
